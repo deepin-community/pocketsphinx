@@ -1,0 +1,7 @@
+version=3
+opts= \
+dversionmangle=s/0.8\+//;s/(5prealpha)\+1/$1/ \
+http://sf.net/cmusphinx/ pocketsphinx(?:[_\-]v?|)(\d[^\s/]*)\.(?:tar\.xz|txz|tar\.bz2|tbz2|tar\.gz|tgz)
+opts=filenamemangle=s/.+\/v?(@ANY_VERSION@@ARCHIVE_EXT@)/pocketsphinx-$1/ \
+  https://github.com/cmusphinx/pocketsphinx/releases .*/.*@ANY_VERSION@@ARCHIVE_EXT@
+

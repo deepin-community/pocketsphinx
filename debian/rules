@@ -1,0 +1,26 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	dh_auto_configure -- --without-python
+
+ifeq (big,$(shell dpkg-architecture -qDEB_BUILD_ARCH_ENDIAN))
+override_dh_auto_test:
+	echo "Big-endian archs do not work yet and create hundreds of gigabytes of log, don't even try for now."
+	false
+endif
+
+override_dh_auto_install:
+	dh_auto_install
+	for file in $$(find debian/tmp/usr/lib/ -name "*.la" -o -name _pocketsphinx.a); do \
+		rm $$file ; \
+	done
+
+override_dh_shlibdeps:
+	dh_shlibdeps
+	LD_LIBRARY_PATH=debian/libpocketsphinx3/usr/lib/$(DEB_HOST_MULTIARCH):$(LD_LIBRARY_PATH) \
+		dh_gstscancodecs
