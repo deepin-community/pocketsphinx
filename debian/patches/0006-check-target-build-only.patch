@@ -1,0 +1,25 @@
+From: Gabor Karsay <gabor.karsay@gmx.at>
+Date: Mon, 26 Jan 2026 21:24:59 +0100
+Subject: check-target-build-only
+
+Forwarded: not-needed
+
+make targets don't accept arguments. Change it to a build-only target
+and run ctest afterwards with arguments, e.g. --verbose.
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index e363bbd..bfd7b1f 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -15,7 +15,7 @@ set(PACKAGE_BUGREPORT dhdaines@gmail.com)
+ 
+ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+   include(CTest)
+-  add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND})
++  add_custom_target(check)
+ endif()
+ 
+ include(CheckTypeSize)

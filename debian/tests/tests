@@ -5,12 +5,19 @@ set -e
 WORKDIR=$AUTOPKGTEST_TMP
 SRCDIR=$PWD
 
-patch -p1 < debian/tests-patches/use_system_pocketsphinx 2>&1 || true
+cd $SRCDIR
+
+patch -p1 < debian/tests-patches/testfuncs-use-system-pocketsphinx.patch 2>&1 || true
+patch -p1 < debian/tests-patches/build-tests-use-system-pocketsphinx.patch 2>&1 || true
 
 dh_autoreconf 2>&1
-dh_auto_configure -- --without-python 2>&1
+dh_auto_configure 2>&1
 dh_auto_build 2>&1
-dh_auto_test 2>&1
+cd obj-$(dpkg-architecture -qDEB_HOST_GNU_TYPE) && make check 2>&1 && cd ..
 
-cd $SRCDIR
-patch -p1 -R < debian/tests-patches/use_system_pocketsphinx
+TEST_ARGS=
+if [ "$(dpkg-architecture -qDEB_HOST_ARCH)" = "i386" ] ; then
+TEST_ARGS="--exclude-regex 'test-main\.sh|test_endpointer|test_vad'"
+fi
+
+dh_auto_test --buildsystem=cmake -- ARGS\+="$TEST_ARGS"

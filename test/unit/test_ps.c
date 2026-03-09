@@ -11,6 +11,7 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
 {
     ps_decoder_t *ps;
     mfcc_t **cepbuf;
+    float32 **floatbuf;
     FILE *rawfh;
     int16 *buf;
     int16 const *bptr;
@@ -20,8 +21,12 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
     char const *hyp;
     double n_speech, n_cpu, n_wall;
     ps_seg_t *seg;
+    char *prev_cmn;
 
     TEST_ASSERT(ps = ps_init(config));
+    prev_cmn = ckd_salloc(ps_get_cmn(ps, FALSE));
+    printf("CMN: %s\n", prev_cmn);
+    err_set_loglevel(ERR_INFO);
     /* Test it first with pocketsphinx_decode_raw() */
     TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
@@ -35,18 +40,31 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
            n_speech, n_cpu, n_wall);
     printf("%.2f xRT (CPU), %.2f xRT (elapsed)\n",
            n_cpu / n_speech, n_wall / n_speech);
+    TEST_ASSERT(0 != strcmp(prev_cmn, ps_get_cmn(ps, FALSE)));
+    ckd_free(prev_cmn);
+    prev_cmn = ckd_salloc(ps_get_cmn(ps, FALSE));
+    printf("CMN: %s\n", prev_cmn);
 
     /* Test it with ps_process_raw() */
     clearerr(rawfh);
     fseek(rawfh, 0, SEEK_END);
     nsamps = ftell(rawfh) / sizeof(*buf);
     fseek(rawfh, 0, SEEK_SET);
+    ps_start_stream(ps);
     TEST_EQUAL(0, ps_start_utt(ps));
     nsamps = 2048;
     buf = ckd_calloc(nsamps, sizeof(*buf));
+    i = 0;
     while (!feof(rawfh)) {
         nread = fread(buf, sizeof(*buf), nsamps, rawfh);
         ps_process_raw(ps, buf, nread, FALSE, FALSE);
+        if (i++ == 1) {
+            /* Test updating CMN while decoding */
+            TEST_ASSERT(0 != strcmp(prev_cmn, ps_get_cmn(ps, TRUE)));
+            ckd_free(prev_cmn);
+            prev_cmn = ckd_salloc(ps_get_cmn(ps, FALSE));
+            printf("CMN: %s\n", prev_cmn);
+        }
     }
     TEST_EQUAL(0, ps_end_utt(ps));
     hyp = ps_get_hyp(ps, &score);
@@ -60,24 +78,41 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
            n_cpu / n_speech, n_wall / n_speech);
 
     /* Now read the whole file and produce an MFCC buffer. */
+    ps_start_stream(ps);
     clearerr(rawfh);
     fseek(rawfh, 0, SEEK_END);
     nsamps = ftell(rawfh) / sizeof(*buf);
     fseek(rawfh, 0, SEEK_SET);
     bptr = buf = ckd_realloc(buf, nsamps * sizeof(*buf));
     TEST_EQUAL(nsamps, fread(buf, sizeof(*buf), nsamps, rawfh));
-    fe_process_frames(ps->acmod->fe, &bptr, &nsamps, NULL, &nfr, NULL);
+    fe_process_frames(ps->acmod->fe, &bptr, &nsamps, NULL, &nfr);
     cepbuf = ckd_calloc_2d(nfr + 1,
                    fe_get_output_size(ps->acmod->fe),
                    sizeof(**cepbuf));
     fe_start_utt(ps->acmod->fe);
-    fe_process_frames(ps->acmod->fe, &bptr, &nsamps, cepbuf, &nfr, NULL);
+    fe_process_frames(ps->acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
     fe_end_utt(ps->acmod->fe, cepbuf[nfr], &i);
 
     /* Decode it with process_cep() */
+#ifdef FIXED_POINT
+    floatbuf = ckd_calloc_2d(nfr + 1,
+                             fe_get_output_size(ps->acmod->fe),
+                             sizeof(**floatbuf));
+    fe_mfcc_to_float(ps->acmod->fe, cepbuf, floatbuf, nfr + 1);
+#else
+    floatbuf = cepbuf;
+#endif
+
     TEST_EQUAL(0, ps_start_utt(ps));
     for (i = 0; i < nfr; ++i) {
-        ps_process_cep(ps, cepbuf + i, 1, FALSE, FALSE);
+        ps_process_cep(ps, floatbuf + i, 1, FALSE, FALSE);
+        if (i == nfr - 5) {
+            /* Test updating CMN while decoding */
+            TEST_ASSERT(0 != strcmp(prev_cmn, ps_get_cmn(ps, TRUE)));
+            ckd_free(prev_cmn);
+            prev_cmn = ckd_salloc(ps_get_cmn(ps, FALSE));
+            printf("CMN: %s\n", prev_cmn);
+        }
     }
     TEST_EQUAL(0, ps_end_utt(ps));
     hyp = ps_get_hyp(ps, &score);
@@ -108,12 +143,20 @@ ps_decoder_test(cmd_ln_t *config, char const *sname, char const *expected)
            n_speech, n_cpu, n_wall);
     printf("TOTAL: %.2f xRT (CPU), %.2f xRT (elapsed)\n",
            n_cpu / n_speech, n_wall / n_speech);
+    TEST_ASSERT(0 != strcmp(prev_cmn, ps_get_cmn(ps, FALSE)));
+    ckd_free(prev_cmn);
+    prev_cmn = ckd_salloc(ps_get_cmn(ps, FALSE));
+    printf("CMN: %s\n", prev_cmn);
 
     fclose(rawfh);
     ps_free(ps);
-    cmd_ln_free_r(config);
+    ps_config_free(config);
+#ifdef FIXED_POINT
+    ckd_free_2d(floatbuf);
+#endif
     ckd_free_2d(cepbuf);
     ckd_free(buf);
+    ckd_free(prev_cmn);
 
     return 0;
 }

@@ -1,0 +1,32 @@
+From: Gabor Karsay <gabor.karsay@gmx.at>
+Date: Tue, 27 Jan 2026 18:38:32 +0100
+Subject: build tests using system pocketsphinx
+
+---
+ test/unit/CMakeLists.txt | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/test/unit/CMakeLists.txt b/test/unit/CMakeLists.txt
+index af108b7..2b3579d 100644
+--- a/test/unit/CMakeLists.txt
++++ b/test/unit/CMakeLists.txt
+@@ -34,13 +34,16 @@ set(TESTS
+   test_word_align
+   test_endpointer
+   )
++
++find_package(PkgConfig REQUIRED)
++pkg_check_modules(POCKETSPHINX_SYSTEM pocketsphinx)
++
+ foreach(TEST_EXECUTABLE ${TESTS})
+   add_executable(${TEST_EXECUTABLE} EXCLUDE_FROM_ALL ${TEST_EXECUTABLE}.c)
+-  target_link_libraries(${TEST_EXECUTABLE} pocketsphinx)
++  target_link_libraries(${TEST_EXECUTABLE} ${POCKETSPHINX_SYSTEM_LIBRARIES})
+   target_include_directories(
+     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_SOURCE_DIR}/src
+-    ${TEST_EXECUTABLE} PRIVATE ${CMAKE_BINARY_DIR}
+     ${TEST_EXECUTABLE} PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
++    ${TEST_EXECUTABLE} PRIVATE ${POCKETSPHINX_SYSTEM_INCLUDE_DIRS}
+     )
+   add_test(NAME ${TEST_EXECUTABLE} COMMAND ${TEST_EXECUTABLE})
+   add_dependencies(check ${TEST_EXECUTABLE})

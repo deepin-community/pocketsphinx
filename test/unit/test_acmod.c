@@ -2,7 +2,8 @@
 #include <string.h>
 #include <pocketsphinx.h>
 
-#include <sphinxbase/logmath.h>
+#include <pocketsphinx/logmath.h>
+#include <pocketsphinx/err.h>
 
 #include "acmod.h"
 #include "test_macros.h"
@@ -23,6 +24,16 @@ static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(1.17)
 };
 
+static void
+assert_cmninit(cmn_t *cmn)
+{
+    int i;
+    for (i = 0; i < cmn->veclen; ++i) {
+        TEST_EQUAL_MFCC(cmn->cmn_mean[i], cmninit[i]);
+        TEST_EQUAL_MFCC(cmn->sum[i], cmninit[i] * CMN_WIN);
+    }
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -38,31 +49,38 @@ main(int argc, char *argv[])
     int frame_counter;
     int bestsen1[270];
 
+    (void)argc;
+    (void)argv;
+    err_set_loglevel(ERR_INFO);
     lmath = logmath_init(1.0001, 0, 0);
-    config = cmd_ln_init(NULL, ps_args(), TRUE,
-                 "-compallsen", "true",
-                 "-cmn", "live",
-                 "-tmatfloor", "0.0001",
-                 "-mixwfloor", "0.001",
-                 "-varfloor", "0.0001",
-                 "-mmap", "no",
-                 "-topn", "4",
-                 "-ds", "1",
-                 "-samprate", "16000", NULL);
+    config = ps_config_parse_json(
+        NULL,
+        "compallsen: true, cmn: live, tmatfloor: 0.0001,"
+        "mixwfloor: 0.001, varfloor: 0.0001,"
+        "mmap: false, topn: 4, ds: 1, samprate: 16000");
     TEST_ASSERT(config);
     cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/en-us/feat.params", FALSE);
 
-    cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/en-us/mdef");
-    cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/en-us/means");
-    cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/en-us/variances");
-    cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/en-us/transition_matrices");
-    cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/en-us/sendump");
-    cmd_ln_set_str_extra_r(config, "_mixw", NULL);
-    cmd_ln_set_str_extra_r(config, "_lda", NULL);
-    cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
+    cmd_ln_set_str_extra_r(config, "mdef", MODELDIR "/en-us/en-us/mdef");
+    cmd_ln_set_str_extra_r(config, "mean", MODELDIR "/en-us/en-us/means");
+    cmd_ln_set_str_extra_r(config, "var", MODELDIR "/en-us/en-us/variances");
+    cmd_ln_set_str_extra_r(config, "tmat", MODELDIR "/en-us/en-us/transition_matrices");
+    cmd_ln_set_str_extra_r(config, "sendump", MODELDIR "/en-us/en-us/sendump");
+    cmd_ln_set_str_extra_r(config, "mixw", NULL);
+    cmd_ln_set_str_extra_r(config, "lda", NULL);
+    cmd_ln_set_str_extra_r(config, "senmgau", NULL);	
 
+    /* Ensure that -cmninit does what it should */
+    ps_config_set_str(config, "cmninit",
+                     "41.00,-5.29,-0.12,5.09,2.48,-4.07,-1.37,-1.78,-5.08,-2.05,-6.45,-1.42,1.17");
     TEST_ASSERT(acmod = acmod_init(config, lmath, NULL, NULL));
+    assert_cmninit(acmod->fcb->cmn_struct);
+    /* Ensure that the two different ways of setting CMN do the right thing. */
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
+    assert_cmninit(acmod->fcb->cmn_struct);
+    cmn_set_repr(acmod->fcb->cmn_struct, 
+                 "41.00,-5.29,-0.12,5.09,2.48,-4.07,-1.37,-1.78,-5.08,-2.05,-6.45,-1.42,1.17");
+    assert_cmninit(acmod->fcb->cmn_struct);
 
     nsamps = 2048;
     frame_counter = 0;
@@ -91,6 +109,9 @@ main(int argc, char *argv[])
         }
     }
     TEST_EQUAL(0, acmod_end_utt(acmod));
+    /* Make sure -cmninit was updated. */
+    TEST_ASSERT(ps_config_str(config, "cmninit") != NULL);
+    E_INFO("New -cmninit: %s\n", ps_config_str(config, "cmninit"));
     nread = 0;
     {
         int16 best_score;
@@ -121,6 +142,9 @@ main(int argc, char *argv[])
     TEST_EQUAL(0, acmod_start_utt(acmod));
     acmod_process_raw(acmod, &bptr, &nsamps, TRUE);
     TEST_EQUAL(0, acmod_end_utt(acmod));
+    /* Make sure -cmninit was updated. */
+    TEST_ASSERT(ps_config_str(config, "cmninit") != NULL);
+    E_INFO("New -cmninit: %s\n", ps_config_str(config, "cmninit"));
     {
         int16 best_score;
         int frame_idx = -1, best_senid;
@@ -147,7 +171,7 @@ main(int argc, char *argv[])
     nsamps = ftell(rawfh) / sizeof(*buf);
     bptr = buf;
     nfr = frame_counter;
-    fe_process_frames(acmod->fe, &bptr, &nsamps, cepbuf, &nfr, NULL);
+    fe_process_frames(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
     fe_end_utt(acmod->fe, cepbuf[frame_counter-1], &nfr);
 
     E_INFO("Incremental(MFCC):\n");
@@ -173,6 +197,9 @@ main(int argc, char *argv[])
         }
     }
     TEST_EQUAL(0, acmod_end_utt(acmod));
+    /* Make sure -cmninit was updated. */
+    TEST_ASSERT(ps_config_str(config, "cmninit") != NULL);
+    E_INFO("New -cmninit: %s\n", ps_config_str(config, "cmninit"));
     nfr = 0;
     acmod_process_cep(acmod, &cptr, &nfr, FALSE);
     {
@@ -198,7 +225,7 @@ main(int argc, char *argv[])
     nsamps = ftell(rawfh) / sizeof(*buf);
     bptr = buf;
     nfr = frame_counter;
-    fe_process_frames(acmod->fe, &bptr, &nsamps, cepbuf, &nfr, NULL);
+    fe_process_frames(acmod->fe, &bptr, &nsamps, cepbuf, &nfr);
     fe_end_utt(acmod->fe, cepbuf[frame_counter-1], &nfr);
 
     E_INFO("Whole utterance (MFCC):\n");
@@ -208,6 +235,9 @@ main(int argc, char *argv[])
     nfr = frame_counter;
     acmod_process_cep(acmod, &cptr, &nfr, TRUE);
     TEST_EQUAL(0, acmod_end_utt(acmod));
+    /* Make sure -cmninit was updated. */
+    TEST_ASSERT(ps_config_str(config, "cmninit") != NULL);
+    E_INFO("New -cmninit: %s\n", ps_config_str(config, "cmninit"));
     {
         int16 best_score;
         int frame_idx = -1, best_senid;
@@ -252,6 +282,6 @@ main(int argc, char *argv[])
     ckd_free(buf);
     acmod_free(acmod);
     logmath_free(lmath);
-    cmd_ln_free_r(config);
+    ps_config_free(config);
     return 0;
 }

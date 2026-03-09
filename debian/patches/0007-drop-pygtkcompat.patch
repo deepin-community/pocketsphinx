@@ -1,0 +1,86 @@
+From: Gabor Karsay <gabor.karsay@gmx.at>
+Date: Wed, 28 Jan 2026 20:32:58 +0100
+Subject: drop pygtkcompat
+
+commit: d09a9520a6180c7ae6a1cd16224e55ac9c4c9028
+Author: Kevin Lenzo <lenzo@duolingo.com>
+Date:   Thu Oct 23 14:15:47 2025 -0400
+
+    Remove deprecated pygtkcompat dependency from livedemo.py
+
+    Replace pygtkcompat with modern PyGObject 3.x API to fix compatibility
+    with current PyGObject versions. The pygtkcompat module was removed
+    after PyGObject 3.50.x series and is no longer available.
+
+    Changes:
+    - Remove pygtkcompat import and enable calls
+    - Add gi.require_version('Gtk', '3.0') requirement
+    - Update GTK API calls to use Gtk.* instead of gtk.*
+    - Update wrap mode constant to Gtk.WrapMode.WORD
+    - Update main loop call to Gtk.main()
+
+    Fixes Debian bug #1118277
+---
+ gst/livedemo.py | 27 +++++++++++----------------
+ 1 file changed, 11 insertions(+), 16 deletions(-)
+
+diff --git a/gst/livedemo.py b/gst/livedemo.py
+index 8728009..b97b58f 100644
+--- a/gst/livedemo.py
++++ b/gst/livedemo.py
+@@ -6,22 +6,17 @@
+ # the CMU Sphinx system. See LICENSE for more information.
+ 
+ 
+-from gi import pygtkcompat
+ import gi
+ 
+ gi.require_version('Gst', '1.0')
+-from gi.repository import GObject, Gst
++gi.require_version('Gtk', '3.0')
++from gi.repository import GObject, Gst, Gtk
+ GObject.threads_init()
+ Gst.init(None)
+     
+ gst = Gst
+     
+-print("Using pygtkcompat and Gst from gi")
+-
+-pygtkcompat.enable() 
+-pygtkcompat.enable_gtk(version='3.0')
+-
+-import gtk
++print("Using PyGObject and Gst from gi")
+ 
+ class DemoApp(object):
+     """GStreamer/PocketSphinx Demo Application"""
+@@ -32,16 +27,16 @@ class DemoApp(object):
+ 
+     def init_gui(self):
+         """Initialize the GUI components"""
+-        self.window = gtk.Window()
+-        self.window.connect("delete-event", gtk.main_quit)
++        self.window = Gtk.Window()
++        self.window.connect("delete-event", Gtk.main_quit)
+         self.window.set_default_size(400,200)
+         self.window.set_border_width(10)
+-        vbox = gtk.VBox()
+-        self.textbuf = gtk.TextBuffer()
+-        self.text = gtk.TextView(buffer=self.textbuf)
+-        self.text.set_wrap_mode(gtk.WRAP_WORD)
++        vbox = Gtk.VBox()
++        self.textbuf = Gtk.TextBuffer()
++        self.text = Gtk.TextView(buffer=self.textbuf)
++        self.text.set_wrap_mode(Gtk.WrapMode.WORD)
+         vbox.pack_start(self.text)
+-        self.button = gtk.ToggleButton("Speak")
++        self.button = Gtk.ToggleButton("Speak")
+         self.button.connect('clicked', self.button_clicked)
+         vbox.pack_start(self.button, False, False, 5)
+         self.window.add(vbox)
+@@ -101,4 +96,4 @@ class DemoApp(object):
+             self.pipeline.set_state(gst.State.PAUSED)
+ 
+ app = DemoApp()
+-gtk.main()
++Gtk.main()
