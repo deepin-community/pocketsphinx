@@ -3,8 +3,8 @@
 #include <string.h>
 #include <time.h>
 
-#include <sphinxbase/jsgf.h>
-#include <sphinxbase/fsg_model.h>
+#include "lm/jsgf.h"
+#include "lm/fsg_model.h"
 
 #include "pocketsphinx_internal.h"
 #include "fsg_search_internal.h"
@@ -22,11 +22,14 @@ main(int argc, char *argv[])
     char const *hyp;
     int32 score, prob;
 
+    (void)argc;
+    (void)argv;
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
-                "-dict", DATADIR "/turtle.dic",
-                "-samprate", "16000", NULL));
+                ps_config_parse_json(
+                    NULL,
+                    "hmm: \"" MODELDIR "/en-us/en-us\","
+                    "dict: \"" DATADIR "/turtle.dic\","
+                    "samprate: 16000"));
     TEST_ASSERT(ps = ps_init(config));
 
     jsgf = jsgf_parse_file(DATADIR "/goforward.gram", NULL);
@@ -36,8 +39,8 @@ main(int argc, char *argv[])
     fsg = jsgf_build_fsg(jsgf, rule, ps->lmath, 7.5);
     TEST_ASSERT(fsg);
     fsg_model_write(fsg, stdout);
-    ps_set_fsg(ps, "goforward.move2", fsg);
-    ps_set_search(ps, "goforward.move2"); 
+    ps_add_fsg(ps, "goforward.move2", fsg);
+    ps_activate_search(ps, "goforward.move2"); 
     TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
     hyp = ps_get_hyp(ps, &score);
@@ -46,15 +49,16 @@ main(int argc, char *argv[])
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
     ps_free(ps);
     fclose(rawfh);
-    cmd_ln_free_r(config);
+    ps_config_free(config);
 
 
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
-                "-dict", DATADIR "/turtle.dic",
-                "-jsgf", DATADIR "/goforward.gram",
-                "-samprate", "16000", NULL));
+                ps_config_parse_json(
+                    NULL,
+                    "hmm: \"" MODELDIR "/en-us/en-us\","
+                    "dict: \"" DATADIR "/turtle.dic\","
+                    "jsgf: \"" DATADIR "/goforward.gram\","
+                    "samprate: 16000"));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
@@ -64,15 +68,15 @@ main(int argc, char *argv[])
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
     ps_free(ps);
     fclose(rawfh);
-    cmd_ln_free_r(config);
+    ps_config_free(config);
 
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
-                "-dict", DATADIR "/turtle.dic",
-                "-jsgf", DATADIR "/goforward.gram",
-                "-toprule", "goforward.move2",
-                "-samprate", "16000", NULL));
+                ps_config_parse_json(
+                    NULL,
+                    "hmm: \"" MODELDIR "/en-us/en-us\","
+                    "dict: \"" DATADIR "/turtle.dic\","
+                    "jsgf: \"" DATADIR "/goforward.gram\","
+                    "toprule: goforward.move2, samprate: 16000"));
     TEST_ASSERT(ps = ps_init(config));
     TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
     ps_decode_raw(ps, rawfh, -1);
@@ -81,17 +85,17 @@ main(int argc, char *argv[])
     printf("%s (%d, %d)\n", hyp, score, prob);
     TEST_EQUAL(0, strcmp("go forward ten meters", hyp));
     ps_free(ps);
-    cmd_ln_free_r(config);
+    ps_config_free(config);
     fclose(rawfh);
 
     TEST_ASSERT(config =
-            cmd_ln_init(NULL, ps_args(), TRUE,
-                "-hmm", MODELDIR "/en-us/en-us",
-                "-dict", DATADIR "/turtle.dic",
-                "-jsgf", DATADIR "/defective.gram",
-                NULL));
+                ps_config_parse_json(
+                    NULL,
+                    "hmm: \"" MODELDIR "/en-us/en-us\","
+                    "dict: \"" DATADIR "/turtle.dic\","
+                    "jsgf: \"" DATADIR "/defective.gram\","));
     TEST_ASSERT(NULL == ps_init(config));
-    cmd_ln_free_r(config);
+    ps_config_free(config);
 
     return 0;
 }

@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 
-. ../testfuncs.sh
+: ${CMAKE_BINARY_DIR:=$(pwd)}
+. ${CMAKE_BINARY_DIR}/test/testfuncs.sh
 
 bn=`basename $0 .sh`
 
@@ -13,6 +14,8 @@ run_program pocketsphinx_batch \
     -cepdir $data/tidigits \
     -hyp $bn.match \
     -wbeam 1e-48 \
+    -bestpath no \
+    -loglevel INFO \
     > $bn.log 2>&1
 
 # Test whether it actually completed

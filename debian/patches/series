@@ -1,4 +1,6 @@
-fix-spelling-mistakes-found-by-lintian.patch
-use_encoding
-
-pkg-config
+0002-match-names-of-man-pages-and-executables.patch
+0003-fix-man-page-reference.patch
+0004-don-t-install-man-pages-without-executables.patch
+0005-fix-typos-in-man-pages.patch
+0006-check-target-build-only.patch
+0007-drop-pygtkcompat.patch

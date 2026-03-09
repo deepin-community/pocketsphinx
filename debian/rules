@@ -2,17 +2,20 @@
 
 export DEB_BUILD_MAINT_OPTIONS = hardening=+all
 
+TEST_ARGS = --verbose
+ifeq (i386,$(DEB_HOST_ARCH))
+TEST_ARGS += ARGS\+="--exclude-regex 'test-main\.sh|test_endpointer|test_vad'"
+endif
+
 %:
 	dh $@
 
 override_dh_auto_configure:
-	dh_auto_configure -- --without-python
+	dh_auto_configure -- -DBUILD_GSTREAMER=ON -DBUILD_SHARED_LIBS=ON
 
-ifeq (big,$(shell dpkg-architecture -qDEB_BUILD_ARCH_ENDIAN))
 override_dh_auto_test:
-	echo "Big-endian archs do not work yet and create hundreds of gigabytes of log, don't even try for now."
-	false
-endif
+	cd obj-$(DEB_HOST_GNU_TYPE) && $(MAKE) check
+	dh_auto_test --buildsystem=cmake -- ARGS\+=$(TEST_ARGS)
 
 override_dh_auto_install:
 	dh_auto_install
@@ -22,5 +25,5 @@ override_dh_auto_install:
 
 override_dh_shlibdeps:
 	dh_shlibdeps
-	LD_LIBRARY_PATH=debian/libpocketsphinx3/usr/lib/$(DEB_HOST_MULTIARCH):$(LD_LIBRARY_PATH) \
+	LD_LIBRARY_PATH=debian/libpocketsphinx5/usr/lib/$(DEB_HOST_MULTIARCH):$(LD_LIBRARY_PATH) \
 		dh_gstscancodecs

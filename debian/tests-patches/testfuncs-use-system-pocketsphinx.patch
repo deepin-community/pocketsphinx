@@ -1,0 +1,21 @@
+From: Gabor Karsay <gabor.karsay@gmx.at>
+Date: Tue, 27 Jan 2026 18:23:49 +0100
+Subject: testfuncs use system pocketsphinx
+
+---
+ test/testfuncs.sh.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/test/testfuncs.sh.in b/test/testfuncs.sh.in
+index f87c005..7c98505 100644
+--- a/test/testfuncs.sh.in
++++ b/test/testfuncs.sh.in
+@@ -7,7 +7,7 @@ sourcedir="@CMAKE_SOURCE_DIR@"
+ tests=$sourcedir/test
+ data=$sourcedir/test/data
+ model=$sourcedir/model
+-programs=$builddir
++programs=/usr/bin
+ 
+ # Automatically report failures on exit
+ failures=""

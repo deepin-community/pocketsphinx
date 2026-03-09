@@ -1,3 +1,84 @@
+pocketsphinx (5.0.4-3) unstable; urgency=medium
+
+  * control: Drop libsphinxbase-dev dependency.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 17 Feb 2026 23:14:02 +0100
+
+pocketsphinx (5.0.4-2) unstable; urgency=medium
+
+  * rules: Re-enable testsuite on 64bit big-endian archs.
+  * copyright: Fix licensing of patches/, add licence of src/jsmn.h.
+
+ -- Samuel Thibault <sthibault@debian.org>  Tue, 17 Feb 2026 10:40:48 +0100
+
+pocketsphinx (5.0.4-1) unstable; urgency=medium
+
+  [ Samuel Thibault ]
+  * New upstream release (Closes: Bug#1043582)
+    - Rename libpocketsphinx3 to libpocketsphinx5 according to soname bump.
+    - control: Drop libsphinxbase-dev build-dep, add graphviz, cmake, sox,
+      libpulse-dev, portaudio19-dev build-deps.
+    - Drop swig-pocketsphinx package.
+    - copyright: Update.
+    - libpocketsphinx-dev.install: libpocketsphinx.a is not getting built any
+      more.
+    - rules: Drop --without-python configure option, pass -DBUILD_GSTREAMER=ON
+      -DBUILD_SHARED_LIBS=ON.
+    - rules: Fix the test target: upstream uses "check", not "test".
+  * watch: Update URL.
+  * control: Replace pkg-config deps with pkgconf.
+  * tests/tests: Always unpatch on exit.
+
+  [ Gabor Karsay ]
+  * Update Standards-Version 4.7.3, removing redundant Priority field
+  * Bump debhelper-compat to 13
+  * Remove redundant Rules-Require-Root field
+  * watch:
+    - Convert to version 5
+    - Drop sf.net
+    - Search stable versions only
+  * patches:
+    - 4 patches with fixes for manual pages
+    - Change "check" target to add arguments for testing
+    - Upstream patch dropping pygtkcompat (Closes: Bug#1118277)
+  * rules: Exclude failing tests on i386
+  * autopkgtest:
+    - Fix tests-patches
+    - Exclude failing tests on i386
+  * Override package-contains-documentation-outside-usr-share-doc
+
+  [ Debian Janitor ]
+  * Use secure URI in debian/watch.
+  * Use secure URI in Homepage field.
+  * Update standards version to 4.6.1, no changes needed.
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 14 Feb 2026 15:02:03 +0100
+
+pocketsphinx (0.8+5prealpha+1-15) unstable; urgency=medium
+
+  [ Debian Janitor ]
+  * Remove constraints unnecessary since buster:
+    + Build-Depends: Drop versioned constraint on libsphinxbase-dev.
+
+  [ Samuel Thibault ]
+  * watch: Use tags instead of releases.
+  * patches/avoid-underflow: Avoid underflow in GMM computation
+    (Closes: #812335)
+
+ -- Samuel Thibault <sthibault@debian.org>  Wed, 28 Sep 2022 22:56:35 +0200
+
+pocketsphinx (0.8+5prealpha+1-14) unstable; urgency=medium
+
+  [ Helmut Grohne ]
+  * Drop unused Build-Depends: swig-sphinxbase, gstreamer1.0-plugins-base,
+    swig, libjs-jquery. (Closes: Bug#981418)
+
+  [ Samuel Thibault ]
+  * control: Set Rules-Requires-Root to no.
+  * control: Bump Standards-Version to 4.6.0 (no change)
+
+ -- Samuel Thibault <sthibault@debian.org>  Sat, 08 Jan 2022 20:17:48 +0100
+
 pocketsphinx (0.8+5prealpha+1-13) unstable; urgency=medium
 
   * Bump debhelper from 10 to 12.

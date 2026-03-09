@@ -1,15 +1,18 @@
-#!/bin/sh
+#!/bin/bash
 
-. ../testfuncs.sh
+: ${CMAKE_BINARY_DIR:=$(pwd)}
+. ${CMAKE_BINARY_DIR}/test/testfuncs.sh
 
 bn=`basename $0 .sh`
 
 echo "Test: $bn"
 run_program pocketsphinx_batch \
+    -loglevel INFO \
     -hmm $model/en-us/en-us \
     -jsgf $data/cards/cards.gram \
     -dict $model/en-us/cmudict-en-us.dict\
     -ctl $data/cards/cards.fileids \
+    -bestpath no \
     -adcin yes \
     -cepdir $data/cards \
     -cepext .wav \

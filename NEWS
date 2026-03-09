@@ -1,3 +1,10 @@
+PocketSphinx 5.0.3
+^^^^^^^^^^^^^^^^^^
+
+The NEWS file has not been updated for some time.  See the GitHub
+releases page at https://github.com/cmusphinx/pocketsphinx/releases
+instead.
+
 Pocketsphinx 0.8
 ^^^^^^^^^^^^^^^^
 
@@ -12,7 +19,7 @@ Improvements:
 
 Fixes:
  * Memory leaks, refcounting and other memory-related issues
- * Use proper word bounary senones for the words added on the fly
+ * Use proper word boundary senones for the words added on the fly
  * Accurate FSG lextree construction
 
 Pocketsphinx 0.7
@@ -41,7 +48,7 @@ Bug fixes:
  * Fixes very important regression with NULL transitions in fsg search
  * Proper acoustic score scaling during posterior calculation.
  
-And many, many, many more intersting things!
+And many, many, many more interesting things!
 
 Pocketsphinx pre
 ^^^^^^^^^^^^^^^^

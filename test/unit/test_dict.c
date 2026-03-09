@@ -12,15 +12,18 @@ main(int argc, char *argv[])
 {
 	bin_mdef_t *mdef;
 	dict_t *dict;
-	cmd_ln_t *config;
+	ps_config_t *config;
 
 	int i;
 	char buf[100];
 
-	TEST_ASSERT(config = cmd_ln_init(NULL, NULL, FALSE,
-						   "-dict", MODELDIR "/en-us/cmudict-en-us.dict",
-						   "_fdict", MODELDIR "/en-us/en-us/noisedict",
-						   NULL));
+	(void)argc;
+	(void)argv;
+	TEST_ASSERT(config =
+                    ps_config_parse_json(
+                        NULL,
+                        "dict: \"" MODELDIR "/en-us/cmudict-en-us.dict\","
+                        "fdict: \"" MODELDIR "/en-us/en-us/noisedict\""));
 
 	/* Test dictionary in standard fashion. */
 	TEST_ASSERT(mdef = bin_mdef_read(NULL, MODELDIR "/en-us/en-us/mdef"));
@@ -57,7 +60,7 @@ main(int argc, char *argv[])
 	}
 	dict_free(dict);
 
-	cmd_ln_free_r(config);
+	ps_config_free(config);
 
 	return 0;
 }
