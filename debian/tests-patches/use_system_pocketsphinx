@@ -1,0 +1,64 @@
+---
+ test/testfuncs.sh.in     |    6 +++---
+ test/testfuncs_cygwin.sh |    2 +-
+ test/unit/Makefile.am    |    8 ++++----
+ 3 files changed, 8 insertions(+), 8 deletions(-)
+
+--- a/test/testfuncs_cygwin.sh
++++ b/test/testfuncs_cygwin.sh
+@@ -17,7 +17,7 @@ trap "report_failures" 0
+ run_program() {
+     program=`basename $1`
+     shift
+-    "$builddir/$program" $@
++    "/usr/bin/$program" $@
+ }
+ 
+ debug_program() {
+--- a/test/unit/Makefile.am
++++ b/test/unit/Makefile.am
+@@ -30,15 +30,15 @@ EXTRA_DIST = test_ps.c
+ 
+ noinst_HEADERS = test_macros.h
+ 
+-AM_CFLAGS =-I$(top_srcdir)/include \
++AM_CFLAGS = \
+ 	-I$(top_srcdir)/src/libpocketsphinx \
+-	-I$(top_builddir)/include \
+-	-I$(srcdir) \
++	$(shell pkg-config --cflags pocketsphinx) \
++	-I$(top_srcdir)/debian/tests/include \
+ 	-DMODELDIR=\"${top_srcdir}/model\" \
+ 	-DDATADIR=\"${top_srcdir}/test/data\"
+ 
+ LDADD = \
+-	$(top_builddir)/src/libpocketsphinx/libpocketsphinx.la \
++	-lpocketsphinx \
+ 	-lsphinxbase
+ 
+ CLEANFILES = *.log *.out *.lat *.mfc *.raw *.dic *.sen
+--- a/test/testfuncs.sh.in
++++ b/test/testfuncs.sh.in
+@@ -16,19 +16,19 @@ trap "report_failures" 0
+ run_program() {
+     program="$1"
+     shift
+-    $builddir/libtool --mode=execute "$programs/$program" $@
++    "/usr/bin/$program" $@
+ }
+ 
+ debug_program() {
+     program="$1"
+     shift
+-    $builddir/libtool --mode=execute gdb --args "$programs/$program" $@
++    gdb --args "/usr/bin/$program" $@
+ }
+ 
+ memcheck_program() {
+     program="$1"
+     shift
+-    $builddir/libtool --mode=execute valgrind --leak-check=full "$programs/$program" $@
++    valgrind --leak-check=full "/usr/bin/$program" $@
+ }
+ 
+ pass() {

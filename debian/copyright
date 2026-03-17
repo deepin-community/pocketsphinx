@@ -5,25 +5,7 @@ Source: http://cmusphinx.sourceforge.net/
 Files: *
 Copyright: 1995-2014 Carnegie Mellon University.  All rights reserved.
            2014-2015 Alpha Cephei Inc.
-License: BSD-2-clause
-
-Files: src/jsmn.h
-Copyright: 2010 Serge Zaitsev
-License: Expat
-
-Files: debian/*
-Copyright: 2007-2008, David Huggins-Daines <dhuggins@cs.cmu.edu>
-           2009, Michael Nelson <michael.nelson@canonical.com>
-           2009, Siegfried-Angel Gevatter Pujals <rainct@ubuntu.com>
-           2013 Samuel Thibault <sthibault@debian.org>
-License: GPL-2+
-
-Files: debian/patches/*
-Copyright: 1995-2014 Carnegie Mellon University.  All rights reserved.
-           2014-2015 Alpha Cephei Inc.
-License: BSD-2-clause
-
-License: BSD-2-clause
+License: BSD-2
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
@@ -52,6 +34,42 @@ License: BSD-2-clause
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE 
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+Files: doc/doxy2swig.py
+Copyright: Prabhu Ramachandran
+Comment: I, elbrus, contacted the creator to clarify exactly which BSD license
+ is meant, his reply was BSD-3 clause.
+ https://lists.alioth.debian.org/pipermail/pkg-a11y-devel/Week-of-Mon-20171030/000247.html
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+ 1. Redistributions of source code must retain the above copyright notice, this
+    list of conditions and the following disclaimer.
+ .
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+    this list of conditions and the following disclaimer in the documentation
+    and/or other materials provided with the distribution.
+ .
+ 3. Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+Files: debian/*
+Copyright: 2007-2008, David Huggins-Daines <dhuggins@cs.cmu.edu>
+           2009, Michael Nelson <michael.nelson@canonical.com>
+           2009, Siegfried-Angel Gevatter Pujals <rainct@ubuntu.com>
+           2013 Samuel Thibault <sthibault@debian.org>
 License: GPL-2+
  This package is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

@@ -2,10 +2,9 @@
 #include <string.h>
 #include <pocketsphinx.h>
 
-#include <pocketsphinx/logmath.h>
+#include <sphinxbase/logmath.h>
 
 #include "acmod.h"
-#include "ptm_mgau.h"
 #include "test_macros.h"
 
 static const mfcc_t cmninit[13] = {
@@ -24,8 +23,6 @@ static const mfcc_t cmninit[13] = {
 	FLOAT2MFCC(1.17)
 };
 
-#define NUM_BEST_SEN 270
-
 int
 main(int argc, char *argv[])
 {
@@ -38,33 +35,30 @@ main(int argc, char *argv[])
     size_t nread, nsamps;
     int nfr;
     int frame_counter;
-    int bestsen1[NUM_BEST_SEN];
+    int bestsen1[270];
 
-    (void)argc;
-    (void)argv;
     lmath = logmath_init(1.0001, 0, 0);
-    config = ps_config_parse_json(
-        NULL,
-        "compallsen: true,"
-        "cmn: live,"
-        "tmatfloor: 0.0001,"
-        "mixwfloor: 0.001,"
-        "varfloor: 0.0001,"
-        "mmap: no,"
-        "topn: 4,"
-        "ds: 1,"
-        "samprate: 16000");
+    config = cmd_ln_init(NULL, ps_args(), TRUE,
+                 "-compallsen", "true",
+                 "-cmn", "live",
+                 "-tmatfloor", "0.0001",
+                 "-mixwfloor", "0.001",
+                 "-varfloor", "0.0001",
+                 "-mmap", "no",
+                 "-topn", "4",
+                 "-ds", "1",
+                 "-samprate", "16000", NULL);
     TEST_ASSERT(config);
     cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/en-us/feat.params", FALSE);
 
-    cmd_ln_set_str_extra_r(config, "mdef", MODELDIR "/en-us/en-us/mdef");
-    cmd_ln_set_str_extra_r(config, "mean", MODELDIR "/en-us/en-us/means");
-    cmd_ln_set_str_extra_r(config, "var", MODELDIR "/en-us/en-us/variances");
-    cmd_ln_set_str_extra_r(config, "tmat", MODELDIR "/en-us/en-us/transition_matrices");
-    cmd_ln_set_str_extra_r(config, "sendump", MODELDIR "/en-us/en-us/sendump");
-    cmd_ln_set_str_extra_r(config, "mixw", NULL);
-    cmd_ln_set_str_extra_r(config, "lda", NULL);
-    cmd_ln_set_str_extra_r(config, "senmgau", NULL);
+    cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/en-us/mdef");
+    cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/en-us/means");
+    cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/en-us/variances");
+    cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/en-us/transition_matrices");
+    cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/en-us/sendump");
+    cmd_ln_set_str_extra_r(config, "_mixw", NULL);
+    cmd_ln_set_str_extra_r(config, "_lda", NULL);
+    cmd_ln_set_str_extra_r(config, "_senmgau", NULL);
 
     TEST_ASSERT(acmod = acmod_init(config, lmath, NULL, NULL));
     cmn_live_set(acmod->fcb->cmn_struct, cmninit);
@@ -89,15 +83,14 @@ main(int argc, char *argv[])
                 printf("Frame %d best senone %d score %d\n",
                        frame_idx, best_senid, best_score);
                 TEST_EQUAL(frame_counter, frame_idx);
-                if (frame_counter < NUM_BEST_SEN)
+                if (frame_counter < 190)
                     bestsen1[frame_counter] = best_senid;
                 ++frame_counter;
                 frame_idx = -1;
             }
         }
     }
-    /* Match pocketsphinx-0.8 as we do not remove silence anymore */
-    TEST_EQUAL(1, acmod_end_utt(acmod));
+    TEST_EQUAL(0, acmod_end_utt(acmod));
     nread = 0;
     acmod_process_raw(acmod, NULL, &nread, FALSE);
     {
@@ -109,7 +102,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             printf("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < NUM_BEST_SEN)
+            if (frame_counter < 190)
                 bestsen1[frame_counter] = best_senid;
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
@@ -119,8 +112,6 @@ main(int argc, char *argv[])
 
     printf("Rewound (MFCC):\n");
     TEST_EQUAL(0, acmod_rewind(acmod));
-    /* Clear fast history buffers to ensure repeatability */
-    ptm_mgau_reset_fast_hist(acmod->mgau);
     {
         int16 best_score;
         int frame_idx = -1, best_senid;
@@ -131,7 +122,7 @@ main(int argc, char *argv[])
             best_score = acmod_best_score(acmod, &best_senid);
             printf("Frame %d best senone %d score %d\n",
                    frame_idx, best_senid, best_score);
-            if (frame_counter < NUM_BEST_SEN)
+            if (frame_counter < 190)
                 TEST_EQUAL(best_senid, bestsen1[frame_counter]);
             TEST_EQUAL(frame_counter, frame_idx);
             ++frame_counter;
@@ -144,6 +135,6 @@ main(int argc, char *argv[])
     ckd_free(buf);
     acmod_free(acmod);
     logmath_free(lmath);
-    ps_config_free(config);
+    cmd_ln_free_r(config);
     return 0;
 }

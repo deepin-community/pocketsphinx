@@ -102,18 +102,15 @@ main(int argc, char *argv[])
 	char const *hyp;
 	int32 score;
 
-	(void)argc;
-	(void)argv;
-        TEST_ASSERT(config =
-                    ps_config_parse_json(
-                        NULL,
-                        "hmm: \"" MODELDIR "/en-us/en-us\","
-                        "lm: \"" MODELDIR "/en-us/en-us.lm.bin\","
-                        "dict: \"" MODELDIR "/en-us/cmudict-en-us.dict\","
-                        "fwdtree: true,"
-                        "fwdflat: false,"
-                        "bestpath: false,"
-                        "samprate: 16000"));
+	TEST_ASSERT(config =
+		    cmd_ln_init(NULL, ps_args(), TRUE,
+				"-hmm", MODELDIR "/en-us/en-us",
+				"-lm", MODELDIR "/en-us/en-us.lm.bin",
+				"-dict", MODELDIR "/en-us/cmudict-en-us.dict",
+				"-fwdtree", "yes",
+				"-fwdflat", "no",
+				"-bestpath", "no",
+				"-samprate", "16000", NULL));
 	TEST_ASSERT(ps = ps_init(config));
 	TEST_ASSERT(rawfh = fopen(DATADIR "/goforward.raw", "rb"));
 	ps_decode_raw(ps, rawfh, -1);
@@ -138,7 +135,7 @@ main(int argc, char *argv[])
 	test_nodes_and_stuff(dag);
 	ps_lattice_free(dag);
 	ps_free(ps);
-	ps_config_free(config);
+	cmd_ln_free_r(config);
 
 	/* Now test standalone lattices. */
 	dag = ps_lattice_read(NULL, "goforward.lat");
