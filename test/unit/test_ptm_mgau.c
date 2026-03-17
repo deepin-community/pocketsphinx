@@ -88,37 +88,37 @@ main(int argc, char *argv[])
 	ptm_mgau_t *s;
 	int i, lastcb;
 
-	(void)argc;
-	(void)argv;
 	lmath = logmath_init(1.0001, 0, 0);
-	config = ps_config_init(NULL);
-        ps_config_set_bool(config, "compallsen", TRUE);
+	config = cmd_ln_init(NULL, ps_args(), TRUE,
+	     "-compallsen", "yes",
+	     NULL);
 	cmd_ln_parse_file_r(config, ps_args(), MODELDIR "/en-us/en-us/feat.params", FALSE);
 
-	cmd_ln_set_str_extra_r(config, "mdef", MODELDIR "/en-us/en-us/mdef");
-	cmd_ln_set_str_extra_r(config, "mean", MODELDIR "/en-us/en-us/means");
-	cmd_ln_set_str_extra_r(config, "var", MODELDIR "/en-us/en-us/variances");
-	cmd_ln_set_str_extra_r(config, "tmat", MODELDIR "/en-us/en-us/transition_matrices");
-	cmd_ln_set_str_extra_r(config, "sendump", MODELDIR "/en-us/en-us/sendump");
-	cmd_ln_set_str_extra_r(config, "mixw", NULL);
-	cmd_ln_set_str_extra_r(config, "lda", NULL);
-	cmd_ln_set_str_extra_r(config, "senmgau", NULL);	
+	cmd_ln_set_str_extra_r(config, "_mdef", MODELDIR "/en-us/en-us/mdef");
+	cmd_ln_set_str_extra_r(config, "_mean", MODELDIR "/en-us/en-us/means");
+	cmd_ln_set_str_extra_r(config, "_var", MODELDIR "/en-us/en-us/variances");
+	cmd_ln_set_str_extra_r(config, "_tmat", MODELDIR "/en-us/en-us/transition_matrices");
+	cmd_ln_set_str_extra_r(config, "_sendump", MODELDIR "/en-us/en-us/sendump");
+	cmd_ln_set_str_extra_r(config, "_mixw", NULL);
+	cmd_ln_set_str_extra_r(config, "_lda", NULL);
+	cmd_ln_set_str_extra_r(config, "_senmgau", NULL);	
 	
+	err_set_debug_level(3);
 	TEST_ASSERT(config);
 	TEST_ASSERT((acmod = acmod_init(config, lmath, NULL, NULL)));
 	TEST_ASSERT((ps = acmod->mgau));
 	TEST_EQUAL(0, strcmp(ps->vt->name, "ptm"));
 	s = (ptm_mgau_t *)ps;
-	E_DEBUG("PTM model loaded: %d codebooks, %d senones, %d frames of history\n",
-		   s->g->n_mgau, s->n_sen, s->n_fast_hist);
-	E_DEBUG("Senone to codebook mappings:\n");
+	E_DEBUG(2,("PTM model loaded: %d codebooks, %d senones, %d frames of history\n",
+		   s->g->n_mgau, s->n_sen, s->n_fast_hist));
+	E_DEBUG(2,("Senone to codebook mappings:\n"));
 	lastcb = s->sen2cb[0];
-	E_DEBUG("\t%d: 0", lastcb);
+	E_DEBUG(2,("\t%d: 0", lastcb));
 	for (i = 0; i < s->n_sen; ++i) {
 		if (s->sen2cb[i] != lastcb) {
 			lastcb = s->sen2cb[i];
-			E_DEBUG("-%d\n", i-1);
-			E_DEBUG("\t%d: %d", lastcb, i);
+			E_DEBUGCONT(2,("-%d\n", i-1));
+			E_DEBUGCONT(2,("\t%d: %d", lastcb, i));
 		}
 	}
 	E_INFOCONT("-%d\n", i-1);
@@ -127,12 +127,12 @@ main(int argc, char *argv[])
 #if 0
 	/* Replace it with ms_mgau. */
 	ptm_mgau_free(ps);
-	ps_config_set_str(config,
+	cmd_ln_set_str_r(config,
 			 "-mixw",
 			 MODELDIR "/en-us/en-us/mixture_weights");
 	TEST_ASSERT((acmod->mgau = ms_mgau_init(acmod, lmath, acmod->mdef)));
 	run_acmod_test(acmod);
-	ps_config_free(config);
+	cmd_ln_free_r(config);
 #endif
 
 	return 0;

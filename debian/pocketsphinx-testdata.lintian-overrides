@@ -1,2 +1,0 @@
-# Files are test files (textual representation of audio)
-pocketsphinx-testdata: package-contains-documentation-outside-usr-share-doc [usr/share/pocketsphinx/test/data/librivox/sense_and_sensibility_01_austen_*.txt]

@@ -1,11 +1,6 @@
 ---
 include:
-  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/recipes/debian.yml
-
-variables:
-  SALSA_CI_REPROTEST_ENABLE_DIFFOSCOPE: 1
-
-  # needs cross-gstreamer
-  SALSA_CI_DISABLE_CROSSBUILD_ARM64: 1
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/salsa-ci.yml
+  - https://salsa.debian.org/salsa-ci-team/pipeline/raw/master/pipeline-jobs.yml
 
 # vim: ts=2 sw=2 et sts=2 ft=yaml
